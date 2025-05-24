@@ -1,2 +1,2 @@
 # gs
-General-Automation-Scripts
+General-Automation-Scripts (public)
