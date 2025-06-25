@@ -43,19 +43,24 @@ def show_unversioned_notifications(msg):
             instance += f"- ({msg['payload'].get('display_name')})"
         publisher_host = msg.get('publisher_id', None)
         state = msg['payload'].get('state', None)
+        host = "None"
+        time_s = "#ToDo"
 
-        return (instance, publisher_host, event, state)
-        
+        return (instance, host,  publisher_host, event, state, time_s)
+
     except Exception as ex:
         # print("ex:", ex, end="\n")
         pass
 
+
 def show_versioned_notifications(msg):
     event = instance = publisher_host = t_state = state = None
+    host = None
     try:
 
         event = msg.get('event_type', None)
         publisher_host = msg.get('publisher_id', None)
+        time_s = msg['timestamp'].split()[1]
 
         nova_obj = msg['payload']['nova_object.data']
         instance = nova_obj.get('uuid', None)
@@ -64,8 +69,9 @@ def show_versioned_notifications(msg):
         
         t_state = nova_obj.get('task_state', None)
         state = nova_obj.get('state', None)
+        host = nova_obj.get('node', None)
         
-        return [str(e) for e in [instance, publisher_host, event, t_state, state]]
+        return [str(e) for e in [instance, host, publisher_host, event, t_state, state, time_s]]
     except Exception as ex:
         # print("ex:", ex, end="\n")
         pass
@@ -77,21 +83,20 @@ def main():
         print("rabbitmq admin cmd ex:", ex, end="\n")
         exit(1)
     pr_req_id = ""
-    for each in data[-20:]:
+    for each in data[-15:]:
         payload = json.loads(each['payload'])
         msg = json.loads(payload['oslo.message'])
 
         if each['routing_key'] == "versioned_notifications.info":
-            s, h, e, t_st, st = show_versioned_notifications(msg)
+            s, h, p_h, e, t_st, st, time_s = show_versioned_notifications(msg)
 
         else:
-            s, h, e, st = show_unversioned_notifications(msg)
+            s, h, p_h, e, st, tmie_s = show_unversioned_notifications(msg)
             # unversioned do not have task_state
             t_st = "---"
 
         if msg['_context_request_id'] != pr_req_id:
             pr_req_id = msg['_context_request_id']
             print(f"\n{pr_req_id}, {s}")
-        print(f"    {str(h):<45}\t{e:<35}\t{t_st:<20}\t{st}")
-
+        print(f"    {time_s}   {h:<40}\t{str(p_h):<35}\t{e:<30}\t{t_st:<20}\t{st}")
 main()
