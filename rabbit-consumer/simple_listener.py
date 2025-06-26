@@ -44,7 +44,7 @@ def show_unversioned_notifications(msg):
         publisher_host = msg.get('publisher_id', None)
         state = msg['payload'].get('state', None)
         host = "None"
-        time_s = "#ToDo"
+        time_s = "#ToDo - time"
 
         return (instance, host,  publisher_host, event, state, time_s)
 
@@ -63,9 +63,10 @@ def show_versioned_notifications(msg):
         time_s = msg['timestamp'].split()[1]
 
         nova_obj = msg['payload']['nova_object.data']
-        instance = nova_obj.get('uuid', None)
+        instance = nova_obj.get('display_name')
+        # instance = nova_obj.get('uuid', None)
         if instance:
-            instance += f"- ({nova_obj.get('display_name')})"
+            instance += f"- ({nova_obj.get('uuid', None)})"
         
         t_state = nova_obj.get('task_state', None)
         state = nova_obj.get('state', None)
@@ -91,7 +92,7 @@ def main():
             s, h, p_h, e, t_st, st, time_s = show_versioned_notifications(msg)
 
         else:
-            s, h, p_h, e, st, tmie_s = show_unversioned_notifications(msg)
+            s, h, p_h, e, st, time_s = show_unversioned_notifications(msg)
             # unversioned do not have task_state
             t_st = "---"
 
